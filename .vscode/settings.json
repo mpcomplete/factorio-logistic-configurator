@@ -1,0 +1,16 @@
+{
+  "Lua.diagnostics.globals": [
+    "getNextId",
+    "defines",
+    "global",
+    "script",
+    "game",
+    "data",
+    "settings",
+    "util",
+    "remote"
+  ],
+  "Lua.diagnostics.disable": [
+    "lowercase-global"
+  ]
+}
