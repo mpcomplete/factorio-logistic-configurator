@@ -4,11 +4,11 @@ local table = require('__stdlib__/stdlib/utils/table')
 require('util')
 
 function GUI(player)
-  return player.gui.screen.zyLCFrame
+  return player.gui.left.zyLCFrame
 end
 
 function buildGui(player)
-  player.gui.screen.add {
+  player.gui.left.add {
     type = "frame",
     name = "zyLCFrame",
     direction = "vertical",
@@ -17,24 +17,23 @@ function buildGui(player)
   }
   GUI(player).add {
     type = "checkbox",
-    name = "requesters",
+    name = "requestersCB",
     caption = { "zy-LCFrame.requesters" },
     -- style = "slot_button",
     state = true,
   }
   do
     local flow = GUI(player).add {
-      type = "flow",
-      name = "requestersFlow",
+      type = "frame",
+      name = "requesters",
       direction = "vertical",
-      state = true,
+      style = "subpanel_frame",
     }
     do
       local set = flow.add {
         type = "flow",
-        name = "setFlow",
+        name = "set",
         direction = "horizontal",
-        state = true,
       }
       set.add {
         type = "label",
@@ -47,6 +46,7 @@ function buildGui(player)
         numeric = true,
         allow_decimal = true,
         text = "1",
+        style = "zy-LCFrame-multiple",
       }
       set.add {
         type = "drop-down",
@@ -58,14 +58,14 @@ function buildGui(player)
     do
       local round = flow.add {
         type = "flow",
-        name = "roundFlow",
+        name = "round",
         direction = "horizontal",
-        state = true,
       }
       round.add {
-        type = "label",
+        type = "checkbox",
         name = "label",
         caption = { "zy-LCFrame.requestersRound" },
+        state = true,
       }
       round.add {
         type = "textfield",
@@ -73,6 +73,7 @@ function buildGui(player)
         numeric = true,
         allow_decimal = true,
         text = "1",
+        style = "zy-LCFrame-multiple",
       }
       round.add {
         type = "drop-down",
@@ -82,6 +83,67 @@ function buildGui(player)
       }
     end
   end
+
+  GUI(player).add {
+    type = "checkbox",
+    name = "insertersCB",
+    caption = { "zy-LCFrame.inserters" },
+    -- style = "slot_button",
+    state = true,
+  }
+  do
+    local flow = GUI(player).add {
+      type = "frame",
+      name = "inserters",
+      direction = "vertical",
+      style = "subpanel_frame",
+    }
+    do
+      local connect = flow.add {
+        type = "flow",
+        name = "connect",
+        direction = "horizontal",
+      }
+      connect.add {
+        type = "label",
+        name = "label",
+        caption = { "zy-LCFrame.insertersConnect" },
+      }
+      connect.add {
+        type = "drop-down",
+        name = "connectTo",
+        items = { { "zy-LCFrame.insertersConnectNetwork" }, { "zy-LCFrame.insertersConnectChest" } },
+        selected_index = 2,
+      }
+    end
+    do
+      local limit = flow.add {
+        type = "flow",
+        name = "limitFlow",
+        direction = "horizontal",
+      }
+      limit.add {
+        type = "label",
+        name = "label",
+        caption = { "zy-LCFrame.insertersLimit" },
+      }
+      limit.add {
+        type = "textfield",
+        name = "multiple",
+        numeric = true,
+        allow_decimal = true,
+        text = "1",
+        style = "zy-LCFrame-multiple",
+      }
+      limit.add {
+        type = "drop-down",
+        name = "multiplyBy",
+        items = { { "zy-LCFrame.stackSize" }, "1" },
+        selected_index = 1,
+      }
+    end
+  end
+
 end
 
 function destroyGui(player)
