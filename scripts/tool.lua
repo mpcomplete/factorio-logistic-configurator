@@ -10,6 +10,11 @@ function isRequester(entity)
     (entity.prototype.logistic_mode == "buffer" or entity.prototype.logistic_mode == "requester")
 end
 
+function isBuffer(entity)
+  return entity.type == "logistic-container" and
+    entity.prototype.logistic_mode == "buffer"
+end
+
 -- Adds ingredients from the entity's current recipe.
 function addIngredients(requests, entity)
   if entity.prototype.crafting_speed and entity.get_recipe() then
@@ -41,7 +46,7 @@ function setRequester(player, chest, requests)
   for itemName, amountConsumed in pairs(requests) do
     local amount = getRequesterAmount(player, itemName, amountConsumed)
     chest.set_request_slot({ name = itemName, count = amount }, nextSlot)
-    debug("setting request slot to " .. itemName .. " < " .. amount)
+    debug("setting requester slot to " .. itemName .. " = " .. amount)
     nextSlot = nextSlot + 1
   end
 end
@@ -51,13 +56,13 @@ function setInserter(player, inserter)
 
   local crafter = inserter.pickup_target
   if crafter.prototype.crafting_speed and crafter.get_recipe() and #crafter.get_recipe().products > 0 then
-    local item = crafter.get_recipe().products[1].name
-    local amount = getInserterAmount(player, item)
+    local itemName = crafter.get_recipe().products[1].name
+    local amount = getInserterAmount(player, itemName)
     local cb = inserter.get_or_create_control_behavior()
     local condition = {
       condition = {
         comparator = "<",
-        first_signal = { type = "item", name = item },
+        first_signal = { type = "item", name = itemName },
         constant = amount,
       }
     }
@@ -72,12 +77,30 @@ function setInserter(player, inserter)
 
       cb.circuit_mode_of_operation = defines.control_behavior.inserter.circuit_mode_of_operation.enable_disable
       cb.circuit_condition = condition
-      debug("setting circuit condition to " .. item .. " < " .. amount)
+      debug("setting circuit condition to " .. itemName .. " < " .. amount)
     else
       cb.connect_to_logistic_network = true
       cb.logistic_condition = condition
-      debug("setting logistic condition to " .. item .. " < " .. amount)
+      debug("setting logistic condition to " .. itemName .. " < " .. amount)
     end
+  end
+end
+
+function setBuffer(player, inserter)
+  local chest  = inserter.drop_target
+  if not isBuffer(chest) then return end
+  if chest.request_slot_count > 0 and getBuffersSkipExisting(player) then return end
+
+  local crafter = inserter.pickup_target
+  if crafter.prototype.crafting_speed and crafter.get_recipe() and #crafter.get_recipe().products > 0 then
+    local itemName = crafter.get_recipe().products[1].name
+    local amount = getBufferAmount(player, itemName)
+
+    for i = 1, chest.request_slot_count do
+      chest.clear_request_slot(i)
+    end
+    chest.set_request_slot({ name = itemName, count = amount }, 1)
+    debug("setting buffer slot to " .. itemName .. " = " .. amount)
   end
 end
 
@@ -99,17 +122,26 @@ script.on_event(defines.events.on_player_selected_area, function(event)
     end
   end)
 
-  for _, data in pairs(requesters) do
-    local chest = data.chest
-    local requests = {}
-    for _,drop in pairs(data.targets) do
-      addIngredients(requests, drop)
-      addLabCycle(requests, drop)
+  if getRequestersEnabled(player) then
+    for _, data in pairs(requesters) do
+      local chest = data.chest
+      local requests = {}
+      for _,drop in pairs(data.targets) do
+        addIngredients(requests, drop)
+        addLabCycle(requests, drop)
+      end
+      setRequester(player, chest, requests)
     end
-    setRequester(player, chest, requests)
   end
-  for _, inserter in pairs(inserters) do
-    setInserter(player, inserter)
+  if getInsertersEnabled(player) then
+    for _, inserter in pairs(inserters) do
+      setInserter(player, inserter)
+    end
+  end
+  if getBuffersEnabled(player) then
+    for _, inserter in pairs(inserters) do
+      setBuffer(player, inserter)
+    end
   end
 end)
 
