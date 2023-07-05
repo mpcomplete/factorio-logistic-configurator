@@ -49,6 +49,8 @@ function setRequester(player, chest, requests)
     debug("setting requester slot to " .. itemName .. " = " .. amount)
     nextSlot = nextSlot + 1
   end
+
+  chest.request_from_buffers = getRequestersFromBuffers(player)
 end
 
 function setInserter(player, inserter)

@@ -19,6 +19,7 @@ function getRequestersRound(player) return GUI(player).requesters.round.enabledC
 -- 1="one", 2=stackSize
 function getRequestersRoundTimes(player) return GUI(player).requesters.round.multiple.text end
 function getRequestersRoundTo(player) return GUI(player).requesters.round.multiplyBy.selected_index end
+function getRequestersFromBuffers(player) return GUI(player).requesters.buffersCB.state end
 function getRequestersSkipExisting(player) return GUI(player).requesters.skipCB.state end
 function getInsertersEnabled(player) return GUI(player).insertersCB.state end
 function getInsertersConnectToChest(player) return GUI(player).inserters.connect.connectTo.selected_index == 1 end -- else network
@@ -139,6 +140,12 @@ function buildGui(player)
         selected_index = 1,
       }
     end
+    flow.add {
+      type = "checkbox",
+      name = "buffersCB",
+      caption = { "zy-LCFrame.requestersFromBuffers" },
+      state = false,
+    }
     flow.add {
       type = "checkbox",
       name = "skipCB",
