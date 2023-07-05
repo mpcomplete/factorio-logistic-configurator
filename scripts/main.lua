@@ -1,10 +1,57 @@
 local Position = require('__stdlib__/stdlib/area/position')
 local Area = require('__stdlib__/stdlib/area/area')
 local table = require('__stdlib__/stdlib/utils/table')
+local math = require('__stdlib__/stdlib/utils/math')
+
 require('util')
 
 function GUI(player)
   return player.gui.left.zyLCFrame
+end
+
+function getRequestersEnabled(player) return GUI(player).requestersCB.state end
+function getRequestersSetMultiple(player) return GUI(player).requesters.set.multiple.text end
+-- 1=stackSize, 2=amountPerSec, 3="one"
+function getRequestersSetMultiplyBy(player) return GUI(player).requesters.set.multiplyBy.selected_index end
+function getRequestersRound(player) return GUI(player).requesters.round.enabledCB.state end
+-- 1=stackSize, 2="one"
+function getRequestersRoundTimes(player) return GUI(player).requesters.round.multiple.text end
+function getRequestersRoundTo(player) return GUI(player).requesters.round.multiplyBy.selected_index end
+function getRequestersSkipExisting(player) return GUI(player).requesters.skipCB.state end
+function getInsertersEnabled(player) return GUI(player).insertersCB.state end
+function getInsertersConnectToChest(player) return GUI(player).inserters.connect.connectTo.selected_index == 1 end -- else network
+function getInsertersLimitMultiple(player) return GUI(player).inserters.limit.multiple.text end
+-- 1=stackSize, 2="one"
+function getInsertersLimitMultiplyBy(player) return GUI(player).inserters.limit.multiplyBy.selected_index end
+function getInsertersSkipExisting(player) return GUI(player).inserters.skipCB.state end
+
+function getRequesterAmount(player, itemName, amountConsumed)
+  local stackSize = game.item_prototypes[itemName].stack_size
+  local multiplyBy = getRequestersSetMultiplyBy(player)
+  local baseAmount =
+     multiplyBy == 1 and stackSize
+     or multiplyBy == 2 and amountConsumed
+     or 1
+  local amount = baseAmount * getRequestersSetMultiple(player)
+  if getRequestersRound(player) then
+    local roundTo = getRequestersRoundTo(player)
+    local roundToAmount =
+      roundTo == 1 and stackSize
+      or 1
+    roundToAmount = roundToAmount * getRequestersRoundTimes(player)
+    amount = math.round(amount / roundToAmount) * roundToAmount
+    if amount == 0 then amount = roundToAmount end
+  end
+  return amount
+end
+
+function getInserterAmount(player, itemName)
+  local stackSize = game.item_prototypes[itemName].stack_size
+  local multiplyBy = getInsertersLimitMultiplyBy(player)
+  local baseAmount =
+     multiplyBy == 1 and stackSize
+     or 1
+  return baseAmount * getInsertersLimitMultiple(player)
 end
 
 function buildGui(player)
@@ -51,7 +98,7 @@ function buildGui(player)
       set.add {
         type = "drop-down",
         name = "multiplyBy",
-        items = { { "zy-LCFrame.stackSize" }, { "zy-LCFrame.craftSpeed" } },
+        items = { { "zy-LCFrame.stackSize" }, { "zy-LCFrame.craftSpeed" },  { "zy-LCFrame.timesOne" } },
         selected_index = 1,
       }
     end
@@ -63,7 +110,7 @@ function buildGui(player)
       }
       round.add {
         type = "checkbox",
-        name = "label",
+        name = "enabledCB",
         caption = { "zy-LCFrame.requestersRound" },
         state = true,
       }
@@ -78,10 +125,16 @@ function buildGui(player)
       round.add {
         type = "drop-down",
         name = "multiplyBy",
-        items = { { "zy-LCFrame.stackSize" }, "1" },
+        items = { { "zy-LCFrame.stackSize" }, { "zy-LCFrame.timesOne" } },
         selected_index = 1,
       }
     end
+    flow.add {
+      type = "checkbox",
+      name = "skipCB",
+      caption = { "zy-LCFrame.requestersSkip" },
+      state = false,
+    }
   end
 
   GUI(player).add {
@@ -112,14 +165,14 @@ function buildGui(player)
       connect.add {
         type = "drop-down",
         name = "connectTo",
-        items = { { "zy-LCFrame.insertersConnectNetwork" }, { "zy-LCFrame.insertersConnectChest" } },
-        selected_index = 2,
+        items = { { "zy-LCFrame.insertersConnectChest" }, { "zy-LCFrame.insertersConnectNetwork" } },
+        selected_index = 1,
       }
     end
     do
       local limit = flow.add {
         type = "flow",
-        name = "limitFlow",
+        name = "limit",
         direction = "horizontal",
       }
       limit.add {
@@ -138,12 +191,17 @@ function buildGui(player)
       limit.add {
         type = "drop-down",
         name = "multiplyBy",
-        items = { { "zy-LCFrame.stackSize" }, "1" },
+        items = { { "zy-LCFrame.stackSize" }, { "zy-LCFrame.timesOne" } },
         selected_index = 1,
       }
     end
+    flow.add {
+      type = "checkbox",
+      name = "skipCB",
+      caption = { "zy-LCFrame.insertersSkip" },
+      state = false,
+    }
   end
-
 end
 
 function destroyGui(player)
