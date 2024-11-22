@@ -1,4 +1,4 @@
-local math = require('__stdlib__/stdlib/utils/math')
+local math = require('__kry_stdlib__/stdlib/utils/math')
 
 require('util')
 
@@ -6,6 +6,7 @@ function GUI(player)
   return player.gui.left.zyLCFrame
 end
 function PData(player)
+  global = global or {}
   global.players = global.players or {}
   global.players[player.name] = global.players[player.name] or {}
   return global.players[player.name]
@@ -34,7 +35,7 @@ function getBuffersSetMultiplyBy(player) return GUI(player).buffers.set.multiply
 function getBuffersSkipExisting(player) return GUI(player).buffers.skipCB.state end
 
 function getRequesterAmount(player, itemName, amountConsumed)
-  local stackSize = game.item_prototypes[itemName].stack_size
+  local stackSize = prototypes.item[itemName].stack_size
   local multiplyBy = getRequestersSetMultiplyBy(player)
   local baseAmount =
      multiplyBy == 1 and 1
@@ -52,14 +53,14 @@ function getRequesterAmount(player, itemName, amountConsumed)
 end
 
 function getInserterAmount(player, itemName)
-  local stackSize = game.item_prototypes[itemName].stack_size
+  local stackSize = prototypes.item[itemName].stack_size
   local multiplyBy = getInsertersLimitMultiplyBy(player)
   local baseAmount = multiplyBy == 1 and 1 or stackSize
   return baseAmount * getInsertersLimitMultiple(player)
 end
 
 function getBufferAmount(player, itemName)
-  local stackSize = game.item_prototypes[itemName].stack_size
+  local stackSize = prototypes.item[itemName].stack_size
   local multiplyBy = getBuffersSetMultiplyBy(player)
   local baseAmount = multiplyBy == 1 and 1 or stackSize
   return baseAmount * getBuffersSetMultiple(player)
@@ -85,7 +86,7 @@ function buildGui(player)
       type = "frame",
       name = "requesters",
       direction = "vertical",
-      style = "subpanel_frame",
+      style = "shallow_frame",
     }
     do
       local set = flow.add {
@@ -166,7 +167,7 @@ function buildGui(player)
       type = "frame",
       name = "inserters",
       direction = "vertical",
-      style = "subpanel_frame",
+      style = "shallow_frame",
     }
     do
       local connect = flow.add {
@@ -232,7 +233,7 @@ function buildGui(player)
       type = "frame",
       name = "buffers",
       direction = "vertical",
-      style = "subpanel_frame",
+      style = "shallow_frame",
     }
     do
       flow.add {

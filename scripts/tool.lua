@@ -1,4 +1,4 @@
-local table = require('__stdlib__/stdlib/utils/table')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 local Util = require('util')
 
 function debug(msg)
@@ -17,7 +17,7 @@ end
 
 -- Adds ingredients from the entity's current recipe.
 function addIngredients(requests, entity)
-  if entity.prototype.crafting_speed and entity.get_recipe() then
+  if entity.prototype.crafting_categories and entity.get_recipe() then
     for _, v in pairs(entity.get_recipe().ingredients) do
       if (v.type == "item") then
         requests[v.name] = (requests[v.name] or 0) + (entity.crafting_speed * v.amount)
@@ -36,16 +36,20 @@ function addLabCycle(requests, entity)
 end
 
 function setRequester(player, chest, requests)
-  if chest.request_slot_count > 0 and getRequestersSkipExisting(player) then return end
+  local lp = chest.get_requester_point()
+  if not lp then return end
+  if lp.sections_count > 0 and getRequestersSkipExisting(player) then return end
 
-  for i = 1, chest.request_slot_count do
-    chest.clear_request_slot(i)
+  while lp.sections_count > 0 do
+    lp.remove_section(1)
+--    lp.sections[si].filters = {}
   end
+  local lsection = lp.add_section()
 
   local nextSlot = 1
   for itemName, amountConsumed in pairs(requests) do
     local amount = getRequesterAmount(player, itemName, amountConsumed)
-    chest.set_request_slot({ name = itemName, count = amount }, nextSlot)
+    lsection.set_slot(nextSlot, { value = itemName, min = amount })
     debug("setting requester slot to " .. itemName .. " = " .. amount)
     nextSlot = nextSlot + 1
   end
@@ -57,32 +61,31 @@ function setInserter(player, inserter)
   if inserter.get_control_behavior() and getInsertersSkipExisting(player) then return end
 
   local crafter = inserter.pickup_target
-  if crafter.prototype.crafting_speed and crafter.get_recipe() and #crafter.get_recipe().products > 0 then
+  if crafter.prototype.crafting_categories and crafter.get_recipe() and #crafter.get_recipe().products > 0 then
     local itemName = crafter.get_recipe().products[1].name
     local amount = getInserterAmount(player, itemName)
     local cb = inserter.get_or_create_control_behavior()
     local condition = {
-      condition = {
-        comparator = "<",
-        first_signal = { type = "item", name = itemName },
-        constant = amount,
-      }
+      comparator = "<",
+      first_signal = { type = "item", name = itemName },
+      constant = amount,
     }
 
     if getInsertersConnectToChest(player) then
-      inserter.connect_neighbour({
-        wire = defines.wire_type.green,
-        target_entity = inserter.drop_target,
-        source_circuit_id = defines.circuit_connector_id.inserter,
-        target_circuit_id = defines.circuit_connector_id.container,
-      })
+      inserter.get_wire_connector(defines.wire_connector_id.circuit_green, true)
+        .connect_to(inserter.drop_target.get_wire_connector(defines.wire_connector_id.circuit_green, true))
 
-      cb.circuit_mode_of_operation = defines.control_behavior.inserter.circuit_mode_of_operation.enable_disable
+      cb.connect_to_logistic_network = false
+      cb.circuit_enable_disable = true
       cb.circuit_condition = condition
+      cb.logistic_condition = nil
       debug("setting circuit condition to " .. itemName .. " < " .. amount)
     else
       cb.connect_to_logistic_network = true
+      cb.circuit_enable_disable = false
+      cb.circuit_condition = nil
       cb.logistic_condition = condition
+
       debug("setting logistic condition to " .. itemName .. " < " .. amount)
     end
   end
@@ -91,17 +94,20 @@ end
 function setBuffer(player, inserter)
   local chest  = inserter.drop_target
   if not isBuffer(chest) then return end
-  if chest.request_slot_count > 0 and getBuffersSkipExisting(player) then return end
+  local lp = chest.get_requester_point()
+  if not lp then return end
+  if lp.sections_count > 0 and getBuffersSkipExisting(player) then return end
 
   local crafter = inserter.pickup_target
-  if crafter.prototype.crafting_speed and crafter.get_recipe() and #crafter.get_recipe().products > 0 then
+  if crafter.prototype.crafting_categories and crafter.get_recipe() and #crafter.get_recipe().products > 0 then
     local itemName = crafter.get_recipe().products[1].name
     local amount = getBufferAmount(player, itemName)
 
-    for i = 1, chest.request_slot_count do
-      chest.clear_request_slot(i)
+    while lp.sections_count > 0 do
+      lp.remove_section(1)
     end
-    chest.set_request_slot({ name = itemName, count = amount }, 1)
+    local lsection = lp.add_section()
+    lsection.set_slot(1, { value = itemName, min = amount })
     debug("setting buffer slot to " .. itemName .. " = " .. amount)
   end
 end

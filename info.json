@@ -1,12 +1,12 @@
 {
   "name": "LogisticConfigurator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "LogisticConfigurator",
   "author": "zysnarch",
-  "factorio_version": "1.1",
+  "factorio_version": "2.0",
   "dependencies": [
-    "base >= 1.1",
-    "stdlib >= 1.4.8"
+    "base >= 2.0",
+    "kry_stdlib >= 1.4.8"
   ],
   "description": "Adds a selection tool with configurable options for automatically setting logistic requester chests based on the crafter they insert into, and/or circuit settings for inserters pulling from crafters."
 }
