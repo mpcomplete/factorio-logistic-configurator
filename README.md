@@ -4,7 +4,7 @@ This is a mod for [Factorio](http://factorio.com) useful for mass configuring a
 typical bot mall. Quickly and easily set the logistic requests and limit the outputs of every
 crafting machine in an area.
 
-![Tool options](tool.png)
+![Tool options](thumbnail.png)
 ![Request chest](mall-requester.png)
 ![Inserter connection](mall-inserter.png)
 ![Buffer requests](mall-buffer.png)
