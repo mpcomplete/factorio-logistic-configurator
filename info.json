@@ -8,5 +8,5 @@
     "base >= 2.0",
     "kry_stdlib >= 1.4.8"
   ],
-  "description": "Adds a selection tool with configurable options for automatically setting logistic requester chests based on the crafter they insert into, and/or circuit settings for inserters pulling from crafters."
+  "description": "Adds a selection tool with configurable options for automatically setting logistic requester chests based on the crafter they insert into, and/or circuit settings for inserters pulling from crafters. Great for configuring bot malls."
 }
